@@ -50,12 +50,12 @@ app.get("/callback", function (req, res) {
             oauthSettings.accessToken = token;
             oauthSettings.accessTokenSecret = secret;
 
-            res.redirect("/stats");                
+            res.redirect("/steps");                
         }
     );
 });
 
-app.get("/stats", function (req, res) {
+app.get("/steps", function (req, res) {
     console.log("access token: %s", req.query.access_token);
     console.log("access token secret: %s", req.query.access_token_secret);
 
@@ -77,17 +77,25 @@ app.get("/stats", function (req, res) {
             return;
         }
 
+        var payload = {
+            accessToken: accessToken,
+            accessTokenSecret: accessTokenSecret,
+            steps: activities.steps()
+        };
+
+        var stringifiedPayload = JSON.stringify(payload);
+
         if (req.session.oauth.pebble) {
-            res.send("Steps: " + activities.steps());
+            // Transfer payload to Pebble.
+            var baseUri = "pebblejs://close#";
+            var encodedPayload = encodeURIComponent(stringifiedPayload);
+
+            window.location.href = baseUri + encodedPayload;
 
         } else {
-            var payload = {
-                accessToken: accessToken,
-                accessTokenSecret: accessTokenSecret
-            };
-
+            // Return payload as JSON.
             res.setHeader("content-type", "application/json");
-            res.end(JSON.stringify(payload));
+            res.end(stringifiedPayload);
         }
     });
 });
