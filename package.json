@@ -1,0 +1,22 @@
+{
+  "name": "pebblebitnode",
+  "version": "0.0.0-2",
+  "description": "Pebble Watch / Fitbit Mashup",
+  "main": "server.js",
+  "dependencies": {
+    "express": "~3.4.8",
+    "fitbit": "0.0.2",
+    "config": "~0.4.35"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "subdomain": "pebblebit",
+  "engines": {
+    "node": "0.10.x"
+  }
+}
