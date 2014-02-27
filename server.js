@@ -1,6 +1,8 @@
 var Fitbit = require("fitbit");
 var express = require("express");
 
+var TRUTHY = "1";
+
 var app = express();
 
 app.use(express.cookieParser());
@@ -14,7 +16,7 @@ var FITBIT_CONSUMER_SECRET = "b3ac0782601448ae93522b49ef74e41b";
 
 app.get("/", function (req, res) {
     var client = new Fitbit(FITBIT_CONSUMER_KEY, FITBIT_CONSUMER_SECRET);
-    var pebble = req.query.pebble === "1";
+    var pebble = req.query.pebble === TRUTHY;
 
     client.getRequestToken(function (err, token, tokenSecret) {
         if (err) {
@@ -36,12 +38,12 @@ app.get("/", function (req, res) {
 
 app.get("/callback", function (req, res) {
     var verifier = req.query.oauth_verifier;
-    var oauthSettings = req.session.oauth;
+    var oauth = req.session.oauth;
     var client = new Fitbit(FITBIT_CONSUMER_KEY, FITBIT_CONSUMER_SECRET);
 
     client.getAccessToken(
-        oauthSettings.requestToken,
-        oauthSettings.requestTokenSecret,
+        oauth.requestToken,
+        oauth.requestTokenSecret,
         verifier,
         function (err, token, secret) {
             if (err) {
@@ -49,8 +51,8 @@ app.get("/callback", function (req, res) {
                 return;
             }
 
-            oauthSettings.accessToken = token;
-            oauthSettings.accessTokenSecret = secret;
+            oauth.accessToken = token;
+            oauth.accessTokenSecret = secret;
 
             res.redirect("/steps");                
         }
@@ -60,7 +62,7 @@ app.get("/callback", function (req, res) {
 app.get("/steps", function (req, res) {
     var oauth = req.session.oauth;
 
-    var pebble = (req.query.pebble === 1) || ((oauth && oauth.pebble) === 1);
+    var pebble = (req.query.pebble === TRUTHY) || (oauth && (oauth.pebble === TRUTHY));
     var accessToken = req.query.access_token || (oauth && oauth.accessToken);
     var accessTokenSecret = req.query.access_token_secret || (oauth && oauth.accessTokenSecret);
 
