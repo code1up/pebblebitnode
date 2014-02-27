@@ -30,7 +30,7 @@ app.get("/", function (req, res) {
     });
 });
 
-app.get("/oauth_callback", function (req, res) {
+app.get("/callback", function (req, res) {
     var verifier = req.query.oauth_verifier;
     var oauthSettings = req.session.oauth;
     var client = new Fitbit(FITBIT_CONSUMER_KEY, FITBIT_CONSUMER_SECRET);
@@ -56,11 +56,17 @@ app.get("/oauth_callback", function (req, res) {
 });
 
 app.get("/stats", function (req, res) {
+    console.log("access token: %s", req.query.access_token);
+    console.log("access token secret: %s", req.query.access_token_secret);
+
+    var accessToken = req.query.access_token || req.session.oauth.accessToken;
+    var accessTokenSecret = req.query.access_token_secret || req.session.oauth.accessTokenSecret;
+
     client = new Fitbit(
         FITBIT_CONSUMER_KEY,
         FITBIT_CONSUMER_SECRET, {
-            accessToken: req.session.oauth.accessToken,
-            accessTokenSecret: req.session.oauth.accessTokenSecret,
+            accessToken: accessToken,
+            accessTokenSecret: accessTokenSecret,
             unitMeasure: "en_GB"
         }
     );
@@ -71,8 +77,8 @@ app.get("/stats", function (req, res) {
             return;
         }
 
-        res.send("Total steps today: " + activities.steps());
+        res.send(accessToken + ", " + accessTokenSecret);
     });
 });
 
-app.listen(process.env.PORT || 1337);
+app.listen(process.env.PORT || 3000);
