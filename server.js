@@ -60,7 +60,7 @@ app.get("/callback", function (req, res) {
 app.get("/steps", function (req, res) {
     var oauth = req.session.oauth;
 
-    var pebble = (req.query.pebble || (oauth && oauth.pebble)) === 1;
+    var pebble = (req.query.pebble === 1) || ((oauth && oauth.pebble)) === 1);
     var accessToken = req.query.access_token || (oauth && oauth.accessToken);
     var accessTokenSecret = req.query.access_token_secret || (oauth && oauth.accessTokenSecret);
 
