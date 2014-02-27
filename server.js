@@ -65,8 +65,8 @@ app.get("/steps", function (req, res) {
     var accessTokenSecret = req.query.access_token_secret || (oauth && oauth.accessTokenSecret);
 
     console.log("pebble: %d", pebble);
-    console.log("access token: %s", access_token);
-    console.log("access token secret: %s", access_token_secret);
+    console.log("access token: %s", accessToken);
+    console.log("access token secret: %s", accessTokenSecret);
 
     client = new Fitbit(
         FITBIT_CONSUMER_KEY,
