@@ -90,7 +90,7 @@ app.get("/steps", function (req, res) {
             var baseUri = "pebblejs://close#";
             var encodedPayload = encodeURIComponent(stringifiedPayload);
 
-            window.location.href = baseUri + encodedPayload;
+            res.redirect(baseUri + encodedPayload);
 
         } else {
             // Return payload as JSON.
