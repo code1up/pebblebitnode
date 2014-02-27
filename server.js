@@ -28,7 +28,9 @@ app.get("/", function (req, res) {
             requestTokenSecret: tokenSecret
         };
 
-        res.redirect(client.authorizeUrl(token));
+        var authorizeUrl = client.authorizeUrl(token) + "&display=touch";
+
+        res.redirect(authorizeUrl);
     });
 });
 
