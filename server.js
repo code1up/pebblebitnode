@@ -85,19 +85,16 @@ app.get("/steps", function (req, res) {
             steps: activities.steps()
         };
 
-        var stringifiedPayload = JSON.stringify(payload);
-
         if (req.session.oauth.pebble) {
-            // Transfer payload to Pebble.
+            // Return payload to Pebble as UTL fragment.
             var baseUri = "pebblejs://close#";
-            var encodedPayload = encodeURIComponent(stringifiedPayload);
+            var encodedPayload = encodeURIComponent(JSON.stringify(payload));
 
             res.redirect(baseUri + encodedPayload);
 
         } else {
             // Return payload as JSON.
-            res.setHeader("content-type", "application/json");
-            res.end(stringifiedPayload);
+            res.json(payload);
         }
     });
 });
