@@ -58,11 +58,15 @@ app.get("/callback", function (req, res) {
 });
 
 app.get("/steps", function (req, res) {
-    console.log("access token: %s", req.query.access_token);
-    console.log("access token secret: %s", req.query.access_token_secret);
+    var oauth = req.session.oauth;
 
-    var accessToken = req.query.access_token || req.session.oauth.accessToken;
-    var accessTokenSecret = req.query.access_token_secret || req.session.oauth.accessTokenSecret;
+    var pebble = (req.query.pebble || (oauth && oauth.pebble)) === 1;
+    var accessToken = req.query.access_token || (oauth && oauth.accessToken);
+    var accessTokenSecret = req.query.access_token_secret || (oauth && oauth.accessTokenSecret);
+
+    console.log("pebble: %d", pebble);
+    console.log("access token: %s", access_token);
+    console.log("access token secret: %s", access_token_secret);
 
     client = new Fitbit(
         FITBIT_CONSUMER_KEY,
@@ -85,12 +89,12 @@ app.get("/steps", function (req, res) {
             steps: activities.steps()
         };
 
-        if (req.session.oauth.pebble) {
+        if (pebble) {
             // Return payload to Pebble as UTL fragment.
-            var baseUri = "pebblejs://close#";
+            var pebbleUrl = "pebblejs://close#";
             var encodedPayload = encodeURIComponent(JSON.stringify(payload));
 
-            res.redirect(baseUri + encodedPayload);
+            res.redirect(pebbleUrl + encodedPayload);
 
         } else {
             // Return payload as JSON.
