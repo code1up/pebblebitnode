@@ -14,6 +14,7 @@ var FITBIT_CONSUMER_SECRET = "b3ac0782601448ae93522b49ef74e41b";
 
 app.get("/", function (req, res) {
     var client = new Fitbit(FITBIT_CONSUMER_KEY, FITBIT_CONSUMER_SECRET);
+    var pebble = req.query.pebble === "1";
 
     client.getRequestToken(function (err, token, tokenSecret) {
         if (err) {
@@ -22,6 +23,7 @@ app.get("/", function (req, res) {
         }
 
         req.session.oauth = {
+            pebble: pebble,
             requestToken: token,
             requestTokenSecret: tokenSecret
         };
@@ -48,9 +50,7 @@ app.get("/callback", function (req, res) {
             oauthSettings.accessToken = token;
             oauthSettings.accessTokenSecret = secret;
 
-            console.dir(oauthSettings);
-
-            res.redirect("/stats");
+            res.redirect("/stats");                
         }
     );
 });
@@ -77,7 +77,18 @@ app.get("/stats", function (req, res) {
             return;
         }
 
-        res.send(accessToken + ", " + accessTokenSecret);
+        if (req.session.oauth.pebble) {
+            res.send("Steps: " + activities.steps());
+
+        } else {
+            var payload = {
+                accessToken: accessToken,
+                accessTokenSecret: accessTokenSecret
+            };
+
+            res.setHeader("content-type", "application/json");
+            res.end(JSON.stringify(payload));
+        }
     });
 });
 
