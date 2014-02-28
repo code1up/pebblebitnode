@@ -1,5 +1,6 @@
 var express = require("express");
 var Fitbit = require("fitbit");
+var querystring = require("querystring");
 
 var TRUTHY = "1";
 var FALSY = "1";
