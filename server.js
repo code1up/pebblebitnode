@@ -1,7 +1,8 @@
-var Fitbit = require("fitbit");
 var express = require("express");
+var Fitbit = require("fitbit");
 
 var TRUTHY = "1";
+var FALSY = "1";
 
 var app = express();
 
@@ -14,23 +15,41 @@ app.use(express.session({
 var FITBIT_CONSUMER_KEY = "759003fc52444dfeb1248a7bb8d176c6";
 var FITBIT_CONSUMER_SECRET = "b3ac0782601448ae93522b49ef74e41b";
 
+var redirectError = function (req, res, error) {
+    var qs = querystring.stringify({
+        error: error
+    });
+
+    var errorUrl = "/error&" + qs;
+
+    console.log("errorUrl: %s", errorUrl);
+
+    res.redirect(errorUrl);
+};
+
 app.get("/", function (req, res) {
     var client = new Fitbit(FITBIT_CONSUMER_KEY, FITBIT_CONSUMER_SECRET);
     var pebble = req.query.pebble === TRUTHY;
 
-    client.getRequestToken(function (err, token, tokenSecret) {
-        if (err) {
-            // TODO: take action.
+    client.getRequestToken(function (error, requestToken, requestTokenSecret) {
+        if (error) {
+            redirectError(req, res, error);
             return;
         }
 
         req.session.oauth = {
-            pebble: pebble,
-            requestToken: token,
-            requestTokenSecret: tokenSecret
+            requestToken: requestToken,
+            requestTokenSecret: requestTokenSecret,
+            pebble: pebble
         };
 
-        var authorizeUrl = client.authorizeUrl(token) + "&display=touch";
+        var qs = querystring.stringify({
+            display: "touch"
+        });
+
+        var authorizeUrl = client.authorizeUrl(token) + "&" + qs;
+
+        console.log("authorizeUrl: %s", authorizeUrl);
 
         res.redirect(authorizeUrl);
     });
@@ -39,22 +58,29 @@ app.get("/", function (req, res) {
 app.get("/callback", function (req, res) {
     var verifier = req.query.oauth_verifier;
     var oauth = req.session.oauth;
+
     var client = new Fitbit(FITBIT_CONSUMER_KEY, FITBIT_CONSUMER_SECRET);
 
     client.getAccessToken(
         oauth.requestToken,
         oauth.requestTokenSecret,
         verifier,
-        function (err, token, secret) {
-            if (err) {
-                // TODO: take action.
+        function (error, accessToken, accessTokenSecret) {
+            if (error) {
+                redirectError(req, res, error);                    
                 return;
             }
 
-            oauth.accessToken = token;
-            oauth.accessTokenSecret = secret;
+            oauth.accessToken = accessToken;
+            oauth.accessTokenSecret = accessTokenSecret;
 
-            res.redirect("/steps");                
+            var qs = querystring.stringify({
+                pebble: oauth.pebble ? TRUTHY : FALSY
+            });
+
+            var stepsUrl = "/steps&" + qs;
+
+            res.redirect(stepsUrl);
         }
     );
 });
@@ -62,11 +88,11 @@ app.get("/callback", function (req, res) {
 app.get("/steps", function (req, res) {
     var oauth = req.session.oauth;
 
-    var pebble = (req.query.pebble === TRUTHY) || (oauth && (oauth.pebble === TRUTHY));
+    var pebble = (req.query.pebble === TRUTHY) || (oauth && oauth.pebble);
     var accessToken = req.query.access_token || (oauth && oauth.accessToken);
     var accessTokenSecret = req.query.access_token_secret || (oauth && oauth.accessTokenSecret);
 
-    console.log("pebble: %d", pebble);
+    console.log("pebble: %s", pebble);
     console.log("access token: %s", accessToken);
     console.log("access token secret: %s", accessTokenSecret);
 
@@ -79,9 +105,9 @@ app.get("/steps", function (req, res) {
         }
     );
 
-    client.getActivities(function (err, activities) {
-        if (err) {
-            // TODO: take action.
+    client.getActivities(function (error, activities) {
+        if (error) {
+            redirectError(req, res, error);            
             return;
         }
 
@@ -103,6 +129,10 @@ app.get("/steps", function (req, res) {
             res.json(payload);
         }
     });
+});
+
+app.get("/error", function (req, res) {
+    res.send("Something wonderful happened.");
 });
 
 app.listen(process.env.PORT || 3000);
