@@ -1,3 +1,7 @@
+// TODO: use headers to pass keys.
+// TODO: ensure HTTPS locally and on the server.
+// TODO: move API keys into config module.
+
 var express = require("express");
 var Fitbit = require("fitbit");
 var querystring = require("querystring");
